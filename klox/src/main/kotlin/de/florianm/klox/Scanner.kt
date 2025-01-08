@@ -21,9 +21,7 @@ class Scanner(
     private fun isAtEnd() = source.length <= current
 
     private fun scanToken() {
-        val c: Char = advance()
-
-        when (c) {
+        when (val c = advance()) {
             '(' -> addToken(TokenType.LEFT_PAREN)
             ')' -> addToken(TokenType.RIGHT_PAREN)
             '{' -> addToken(TokenType.LEFT_BRACE)
@@ -50,7 +48,13 @@ class Scanner(
             '\n' -> line++
             '"' -> string()
             else -> {
-                KLox.error(line, "Unexpected character.")
+                if (isDigit(c)) {
+                    number()
+                } else if (isAlpha(c)) {
+                    identifier()
+                } else {
+                    KLox.error(line, "Unexpected character.")
+                }
             }
         }
     }
@@ -99,5 +103,63 @@ class Scanner(
 
         val value = source.substring(start + 1 until current - 1)
         addToken(TokenType.STRING, value)
+    }
+
+    private fun number() {
+        while (isDigit(peek())) {
+            advance()
+        }
+
+        if ('.' == peek() && isDigit(peekNext())) {
+            // consume '.'
+            advance()
+
+            while (isDigit(peek())) advance()
+        }
+
+        addToken(TokenType.NUMBER, source.substring(start, current).toDouble())
+    }
+
+    private fun isDigit(value: Char) = value in '0'..'9'
+
+    private fun peekNext(): Char {
+        if (current + 1 >= source.length) {
+            return '\u0000'
+        }
+
+        return source[current + 1]
+    }
+
+    private fun isAlpha(value: Char) = value in 'a'..'z' || value in 'A'..'Z' || value == '_'
+
+    private fun isAlphaNumeric(value: Char) = isAlpha(value) || isDigit(value)
+
+    private fun identifier() {
+        while (isAlphaNumeric(peek())) {
+            advance()
+        }
+
+        val identifier = source.substring(start, current)
+        addToken(reservedWord.getOrDefault(identifier, TokenType.IDENTIFIER))
+    }
+
+    companion object {
+        val reservedWord = mapOf(
+            "and" to TokenType.AND,
+            "class" to TokenType.CLASS,
+            "else" to TokenType.ELSE,
+            "false" to TokenType.FALSE,
+            "fun" to TokenType.FUN,
+            "for" to TokenType.FOR,
+            "if" to TokenType.IF,
+            "nil" to TokenType.NIL,
+            "or" to TokenType.OR,
+            "print" to TokenType.PRINT,
+            "return" to TokenType.RETURN,
+            "super" to TokenType.SUPER,
+            "true" to TokenType.TRUE,
+            "var" to TokenType.VAR,
+            "while" to TokenType.WHILE
+        )
     }
 }
