@@ -39,6 +39,8 @@ class Scanner(
             '/' -> {
                 if (match('/')) {
                     while ('\n' != peek() && !isAtEnd()) advance()
+                } else if(match('*')){
+                    multiLineComment()
                 } else {
                     addToken(TokenType.SLASH)
                 }
@@ -141,6 +143,28 @@ class Scanner(
 
         val identifier = source.substring(start, current)
         addToken(reservedWord.getOrDefault(identifier, TokenType.IDENTIFIER))
+    }
+
+    private fun multiLineComment(){
+        var level = 1
+        while(0 < level && !isAtEnd()){
+            if ('\n' == peek()) line++
+            println("peek=${peek()}, peekNext=${peekNext()}")
+
+            if('*' == peek() && '/' == peekNext()){
+                advance()
+                level--
+            } else if('/' == peek() && '*' == peekNext()){
+                advance()
+                level++
+            }
+
+            advance()
+        }
+
+        if (0 < level) {
+            KLox.error(line, "Unterminated multiline comment.")
+        }
     }
 
     companion object {
