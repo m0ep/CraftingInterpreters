@@ -1,0 +1,4 @@
+Binary - left:Expr, operator:Token, right:Expr
+Unary - operator:Token, right:Expr
+Literal - value:Any
+Grouping - expression:Expr

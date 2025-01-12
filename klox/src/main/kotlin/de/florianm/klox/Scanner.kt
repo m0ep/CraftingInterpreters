@@ -1,7 +1,7 @@
 package de.florianm.klox
 
 class Scanner(
-    val source: String
+    private val source: String
 ) {
     private val tokens = mutableListOf<Token>()
     private var start = 0
